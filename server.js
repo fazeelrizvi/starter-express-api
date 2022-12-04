@@ -5,7 +5,7 @@ var bodyParser = require('body-parser');
 const { 
 
 
-  CompanySignup, DriverSignup, Login, AddDelivery, GetDeliveryList, UpdateDeliveryStatus, UpdateDriverLocation, getDriverLocation,
+  CompanySignup, DriverSignup, Login, AddDelivery, GetDeliveryList, UpdateDeliveryStatus, UpdateDriverLocation, getDriverLocation, GetCompanyDrivers, GetDeliveryListAllStatus,
 
 
  } = require('./Functions/Product');
@@ -65,6 +65,17 @@ app.post('/CompanySignup', function(req, res){
   })
 })
 
+app.get('/GetCompanyDrivers', function(req, res){
+  const {query} = req;
+  GetCompanyDrivers(query)
+  .then(result=>{
+    res.status(200).send(result);
+  })
+  .catch(err=>{
+    res.status(500).send(err);
+  })
+})
+
 app.post('/InsertDriver', function(req, res){
   const {body} = req;
   DriverSignup(body)
@@ -110,6 +121,29 @@ app.put('/UpdateDriverLocation', function(req, res){
 })
 
 app.get('/DriverGettingPendingDelivery', function(req, res){
+  const {query} = req;
+  GetDeliveryList(query)
+  .then(result=>{
+    res.status(200).send(result);
+  })
+  .catch(err=>{
+    res.status(500).send(err);
+  })
+})
+
+
+app.get('/GetDeliveriesOfDriver', function(req, res){
+  const {query} = req;
+  GetDeliveryListAllStatus(query)
+  .then(result=>{
+    res.status(200).send(result);
+  })
+  .catch(err=>{
+    res.status(500).send(err);
+  })
+})
+
+app.get('/getDeliverDelivery', function(req, res){
   const {query} = req;
   GetDeliveryList(query)
   .then(result=>{
@@ -219,6 +253,6 @@ app.get('/getDriverLocation', function(req, res){
 
 app.use('/static', express.static('public'));
 
-app.listen(process.env.PORT, function(){
+app.listen(3001, function(){
   console.log("Express server listening on port %d in %s mode", this.address().port, app.settings.env);
 });

@@ -16,6 +16,7 @@ const {
     Total,
     PercentageCalculator,
     FindInDbGetSpecificParams,
+    formatDate,
 } = require('./libs');
 
 var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul","Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -32,6 +33,7 @@ const MFDrivers = [
     'PhoneNumber',
     'Email',
     'Password',
+    'CompanyId',
 ];
 
 const MFDelivery = [
@@ -150,7 +152,6 @@ const MFDashboardBanner = [
 const MFGetDelivery = [
     'DriverId',	
     'Date',
-    'Status'
 ];
 
 
@@ -286,6 +287,73 @@ function DriverSignup(Body){
         })
         .catch(err=>{
             rej(err)
+        })
+    })
+}
+
+function GetCompanyDrivers(Body){
+return new Promise((res, rej)=>{
+    CheckMandatory(Body, ['CompanyId'])
+    .then(result=>{
+        CheckNullAndEmpty(Body)
+        .then(success=>{
+            FindInDbGetSpecificParams('Drivers', Body, {CreatedAt:0, UpdatedAt:0})
+            .then(async result=>{
+                res(result)
+            })
+            .catch(err=>{
+                rej(err)
+        })
+        })
+        .catch(err=>{
+                rej(err)
+        })
+    })
+    .catch(err=>{
+            rej(err)
+    })
+});
+}
+
+
+function GetDeliveryListAllStatus(Body){
+    return new Promise((res, rej)=>{
+        CheckMandatory(Body, MFGetDelivery)
+        .then(result=>{
+            CheckNullAndEmpty(Body)
+            .then(async(success)=>{
+                let DeliveryStatus = await FindInDb('DeliveryStatus', {});
+                DeliveryStatus = DeliveryStatus.Data;
+                console.log(DeliveryStatus)
+                const DriverName = await FindInDbGetSpecificParams('Drivers', {
+                    _id:1
+                }, {Name:1, _id:0})
+                .then((json)=>json.Data[0].Name);
+                Body.DeliveryDate = new Date(Body.Date);
+                Body.DriverId = parseInt(Body.DriverId);
+                delete Body.Date;
+                delete Body.CompanyId;
+                FindInDbGetSpecificParams('Delivery', Body, {CreatedAt:0, UpdatedAt:0})
+                .then(async result=>{
+                    const {
+                        Data
+                    } = result;
+                    result.Data = Data.map((v => {
+                    const StatusName = DeliveryStatus.find(x=>x._id == v.DriverId).Name;
+                       return {...v, DriverName, Status:StatusName, DeliveryDate: formatDate(v.DeliveryDate)};
+                    }))
+                    res(result)
+                })
+                .catch(err=>{
+                    rej(err)
+            })
+            })
+            .catch(err=>{
+                    rej(err)
+            })
+        })
+        .catch(err=>{
+                rej(err)
         })
     })
 }
@@ -1400,7 +1468,7 @@ function ForgotPassword({PhoneNumber}) {
 
 function getDriverLocation({Id}) {
     return new Promise((res, rej)=>{
-        FindInDbGetSpecificParams('Drivers', {_id: parseInt(Id), }, {LatLong:1})
+        FindInDbGetSpecificParams('Drivers', {_id: parseInt(Id), }, {LatLong:1, _id:0})
         .then(async result=>{
           res(result);
         })
@@ -1835,7 +1903,9 @@ module.exports = {
     GetDeliveryList,
     UpdateDeliveryStatus,
     UpdateDriverLocation,
-    getDriverLocation
+    getDriverLocation,
+    GetCompanyDrivers,
+    GetDeliveryListAllStatus
 }
 
 

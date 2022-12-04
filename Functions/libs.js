@@ -188,7 +188,7 @@ function FindInDbGetSpecificParams(Table, Query, WillReturnObject){
         }
         else{
             var dbo = db.db("LocationTrack");
-            dbo.collection(Table).find(Query).project({LatLong:1, _id:0}).toArray(function(err, result) {
+            dbo.collection(Table).find(Query).project(WillReturnObject).toArray(function(err, result) {
                 if(!err){
                     if(result.length > 0){
                         res({Code: "00", Message:"Finded successfully!", Data:result});
@@ -391,6 +391,21 @@ function RemoveKeys(Data, Keys){
 }
 
 
+function formatDate(date) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+    if (month.length < 2) 
+        month = '0' + month;
+    if (day.length < 2) 
+        day = '0' + day;
+
+    return [year, month, day].join('-');
+}
+
+
 module.exports = {
     CheckMandatory,
     InsertInDb,
@@ -406,5 +421,6 @@ module.exports = {
     RemoveKeys,
     InsertInDbWithCallbackResult,
     CheckIfExistWithResult,
-    FindInDbGetSpecificParams
+    FindInDbGetSpecificParams,
+    formatDate
 }
